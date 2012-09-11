@@ -17,8 +17,8 @@ REDIS_LATENCY_KEY = "queue:latency"
 
 redis_server = redis.Redis(SERVER_ADDRESS)
 parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
-parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN')
-parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store")
+parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
+parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
 args = parser.parse_args()
 
 #load the subnet list
