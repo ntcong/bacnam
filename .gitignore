@@ -25,3 +25,8 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+
+#sublime file
+bacnam.sublime-project
+bacnam.sublime-workspace
