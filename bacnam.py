@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import ping
 import socket
 import redis
@@ -11,12 +12,13 @@ SERVER_ADDRESS = 'localhost'
 SAMPLE_IP_SIZE = 5
 MAX_TRYING = 10
 REDIS_SUBNET_KEY = "queue:subnet"
-REDIS_QUEUE_KEY = "queue:latency"
+REDIS_LATENCY_KEY = "queue:latency"
 
 
 redis_server = redis.Redis(SERVER_ADDRESS)
-parser = argparse.ArgumentParser(description='test')
-parser.add_argument('-l', '--location', help='123', action="store", default='HN', required=True)
+parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
+parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN')
+parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store")
 args = parser.parse_args()
 
 #load the subnet list
@@ -37,11 +39,11 @@ def add_to_queue(subnet, ip_list, latency):
     for ip in ip_list:
         data.append(str(ip))
     data = pickle.dumps(data)
-    redis_server.rpush(REDIS_QUEUE_KEY, data)
+    redis_server.rpush(REDIS_LATENCY_KEY, data)
 
 
 def get_queue():
-    data = redis_server.blpop(REDIS_QUEUE_KEY)
+    data = redis_server.blpop(REDIS_LATENCY_KEY)
     data = pickle.loads(data[1])  # data[0] is key, data[1] is the value
     return data
 
@@ -110,12 +112,24 @@ def scan_subnet(subnet):
     add_to_queue(subnet, sample_IP, avg_latency)
 
 
-if args.location == 'HN':
-    while 1:
-        subnet_list = get_subnet()
-        for subnet in subnet_list:
-            scan_subnet(subnet)
-elif args.location == 'HCM':
-    while 1:
-        scan_hcm_latency(get_queue())
+def main():
+    if args.add_subnet != None:
+        try:
+            ipaddr.IPv4Network(args.add_subnet)
+        except ipaddr.AddressValueError:
+            print '%s is not valid' % args.add_subnet
+            return 0
+        add_subnet(args.add_subnet)
+        return
+    if args.location == 'HN':
+        while 1:
+            subnet_list = get_subnet()
+            for subnet in subnet_list:
+                scan_subnet(subnet)
+    elif args.location == 'HCM':
+        while 1:
+            scan_hcm_latency(get_queue())
 
+
+if __name__ == '__main__':
+    main()
