@@ -7,12 +7,14 @@ import random
 import cPickle as pickle
 import argparse
 import sys
+import signal
+import time
 from multiprocessing import Pool
 
 SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 MAX_TRYING = 10  # number of retrying before drop a subnet
-MAX_POOL = 5  # max number of worker
+MAX_POOL = 1  # max number of worker
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 
@@ -23,7 +25,14 @@ parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action=
 parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
 args = parser.parse_args()
 
-#load the subnet list
+
+def init_worker():
+    '''
+    When system send Break/KeyboardInterrupt or SIGTERM, the subprocess
+    hanged and doesn't cleanup properly for the main program to terminate
+    Ignore SIGINT so the subprocess can do the cleanup to the parent
+    '''
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
 def get_subnet():
@@ -132,10 +141,16 @@ def main():
         return
     if args.location == 'HN':
         while 1:
-            worker = Pool(MAX_POOL)
+            worker = Pool(MAX_POOL, init_worker)
             subnet_list = get_subnet()
-            for subnet in subnet_list:
-                worker.apply_async(scan_subnet, (subnet,))
+            try:
+                for subnet in subnet_list:
+                    worker.apply_async(scan_subnet, (subnet,))
+                time.sleep(10)
+            except KeyboardInterrupt:
+                print 'Terminating'
+                worker.terminate()
+                worker.wait()
             worker.close()
             worker.join()
     elif args.location == 'HCM':
