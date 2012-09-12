@@ -15,6 +15,7 @@ SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 MAX_TRYING = 10  # number of retrying before drop a subnet
 MAX_POOL = 1  # max number of worker
+TIMEOUT = 500
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 
@@ -68,7 +69,7 @@ def get_new_sample_IP(subnet):
 
 def get_latency(IP):
     try:
-        res = ping.Ping(str(IP), timeout=1000).do()
+        res = ping.Ping(str(IP), timeout=TIMEOUT).do()
         if res is None:
             return -1
         else:
@@ -93,7 +94,7 @@ def scan_hcm_latency(data):
             total_latency += latency
             num += 1
     if num == 0:
-        avg_latency = 1000  # timeout
+        avg_latency = TIMEOUT
     else:
         avg_latency = total_latency / num
     # save data: key:subnet, data: (latency HN, latency HCM, HN-HCM)
@@ -122,7 +123,7 @@ def scan_subnet(subnet):
     if len(sample_IP) != 0:
         avg_latency = total_latency / len(sample_IP)
     else:
-        avg_latency = 1000  # timeout value
+        avg_latency = TIMEOUT
     add_to_queue(subnet, sample_IP, avg_latency)
 
 
