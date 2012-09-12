@@ -6,6 +6,7 @@ import ipaddr
 import random
 import cPickle as pickle
 import argparse
+import sys
 
 
 SERVER_ADDRESS = 'localhost'
@@ -62,9 +63,9 @@ def get_latency(IP):
             return -1
         else:
             return res
-    except socket.error, e:
-        print "Ping Error", e
-        return -1
+    except socket.error:
+        print "Ping Error"
+        sys.exit(1)
 
 
 def scan_hcm_latency(data):
