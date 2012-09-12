@@ -7,13 +7,14 @@ import random
 import cPickle as pickle
 import argparse
 import sys
+from multiprocessing import Pool
 
-
-SERVER_ADDRESS = 'localhost'
-SAMPLE_IP_SIZE = 5
-MAX_TRYING = 10
-REDIS_SUBNET_KEY = "queue:subnet"
-REDIS_LATENCY_KEY = "queue:latency"
+SERVER_ADDRESS = 'localhost'  # redis server location
+SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
+MAX_TRYING = 10  # number of retrying before drop a subnet
+MAX_POOL = 5  # max number of worker
+REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
+REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 
 
 redis_server = redis.Redis(SERVER_ADDRESS)
@@ -82,7 +83,10 @@ def scan_hcm_latency(data):
         if latency != -1:
             total_latency += latency
             num += 1
-    avg_latency = total_latency / num
+    if num == 0:
+        avg_latency = 1000  # timeout
+    else:
+        avg_latency = total_latency / num
     # save data: key:subnet, data: (latency HN, latency HCM, HN-HCM)
     data.append(avg_latency)
     data = [data[1], avg_latency, data[1] - avg_latency]
@@ -113,6 +117,10 @@ def scan_subnet(subnet):
     add_to_queue(subnet, sample_IP, avg_latency)
 
 
+def scan_hcm(id):
+    scan_hcm_latency(get_queue())
+
+
 def main():
     if args.add_subnet != None:
         try:
@@ -124,12 +132,19 @@ def main():
         return
     if args.location == 'HN':
         while 1:
+            worker = Pool(MAX_POOL)
             subnet_list = get_subnet()
             for subnet in subnet_list:
-                scan_subnet(subnet)
+                worker.apply_async(scan_subnet, (subnet,))
+            worker.close()
+            worker.join()
     elif args.location == 'HCM':
         while 1:
-            scan_hcm_latency(get_queue())
+            worker = Pool(MAX_POOL)
+            for i in range(MAX_POOL):
+                worker.apply_async(scan_hcm, (i,))
+            worker.close()
+            worker.join()
 
 
 if __name__ == '__main__':
