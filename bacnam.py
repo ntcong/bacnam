@@ -16,7 +16,7 @@ SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 SAMPLE_PROB = 50  # number of IP in the beginning that have higher chance of online
 MAX_TRYING = 10  # number of retrying before drop a subnet
 MAX_POOL = 5  # max number of worker
-TIMEOUT = 500  # ping timeout
+TIMEOUT = 300  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 
