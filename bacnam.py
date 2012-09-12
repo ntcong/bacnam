@@ -154,7 +154,7 @@ def main():
             try:
                 for subnet in subnet_list:
                     worker.apply_async(scan_subnet, (subnet,))
-                time.sleep(10)
+                time.sleep(5)
             except KeyboardInterrupt:
                 print 'Terminating...'
                 worker.terminate()
@@ -168,7 +168,7 @@ def main():
             try:
                 for i in range(MAX_POOL):
                     worker.apply_async(scan_hcm, (i,))
-                time.sleep(10)
+                time.sleep(5)
             except KeyboardInterrupt:
                 print 'Terminating...'
                 worker.terminate()
