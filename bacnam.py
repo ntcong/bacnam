@@ -149,9 +149,10 @@ def main():
                     worker.apply_async(scan_subnet, (subnet,))
                 time.sleep(10)
             except KeyboardInterrupt:
-                print 'Terminating'
+                print 'Terminating...'
                 worker.terminate()
-                worker.wait()
+                worker.join()
+                return
             worker.close()
             worker.join()
     elif args.location == 'HCM':
