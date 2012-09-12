@@ -13,9 +13,10 @@ from multiprocessing import Pool
 
 SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
+SAMPLE_PROB = 50  # number of IP in the beginning that have higher chance of online
 MAX_TRYING = 10  # number of retrying before drop a subnet
-MAX_POOL = 1  # max number of worker
-TIMEOUT = 500
+MAX_POOL = 5  # max number of worker
+TIMEOUT = 500  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 
@@ -60,10 +61,15 @@ def get_queue():
     return data
 
 
-def get_new_sample_IP(subnet):
+def get_random_IP(subnet):
     # IP start from 0->numhosts-1
     # ignore first and last IP in subnet
     num = random.randint(2, subnet.numhosts - 2)
+    return subnet[num]
+
+
+def get_begin_random_IP(subnet):
+    num = random.randint(2, SAMPLE_PROB)
     return subnet[num]
 
 
@@ -108,18 +114,19 @@ def scan_subnet(subnet):
     subnet = ipaddr.IPv4Network(subnet)
     sample_IP = []
     total_latency = 0
-    tried = 0
-    while len(sample_IP) < SAMPLE_IP_SIZE and tried < MAX_TRYING:
-        IP = get_new_sample_IP(subnet)
+    tried = 1
+    while len(sample_IP) < SAMPLE_IP_SIZE and tried < 2 * MAX_TRYING:
+        if tried < MAX_TRYING:
+            IP = get_begin_random_IP(subnet)
+        else:
+            IP = get_random_IP(subnet)
         print 'Trying %s' % IP,
         latency = get_latency(IP)
         print latency
-        if latency == -1:  # host is offline
-            tried += 1
-            continue
-        else:
+        if latency != -1:
             total_latency += latency
             sample_IP.append(IP)
+        tried += 1
     if len(sample_IP) != 0:
         avg_latency = total_latency / len(sample_IP)
     else:
@@ -157,9 +164,16 @@ def main():
             worker.join()
     elif args.location == 'HCM':
         while 1:
-            worker = Pool(MAX_POOL)
-            for i in range(MAX_POOL):
-                worker.apply_async(scan_hcm, (i,))
+            worker = Pool(MAX_POOL, init_worker)
+            try:
+                for i in range(MAX_POOL):
+                    worker.apply_async(scan_hcm, (i,))
+                time.sleep(10)
+            except KeyboardInterrupt:
+                print 'Terminating...'
+                worker.terminate()
+                worker.join()
+                return
             worker.close()
             worker.join()
 
