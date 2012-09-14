@@ -19,6 +19,7 @@ MAX_POOL = 5  # max number of worker
 TIMEOUT = 300  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
+MIN_DIFFERENT = 5  # min latency different between HN and HCM
 
 
 redis_server = redis.Redis(SERVER_ADDRESS)
@@ -37,13 +38,17 @@ def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
+def get_subnet_latency(subnet):
+    return redis_server.get(subnet)
+
+
 def get_subnet():
     return redis_server.lrange(REDIS_SUBNET_KEY, 0, -1)
     #return redis_server.blpop(REDIS_SUBNET_KEY)[1]
 
 
 def add_subnet(subnet):
-    redis_server.lpush(REDIS_SUBNET_KEY, subnet)
+    redis_server.lpush(REDIS_SUBNET_KEY, subnet)  # push subnet ontop for faster update
 
 
 def add_to_queue(subnet, ip_list, latency):
@@ -138,11 +143,16 @@ def scan_hcm(id):
     scan_hcm_latency(get_queue())
 
 
+def is_subnet_valid(subnet):
+    try:
+        ipaddr.IPv4Network(args.add_subnet)
+    except ipaddr.AddressValueError:
+        return False
+    return True
+
 def main():
     if args.add_subnet != None:
-        try:
-            ipaddr.IPv4Network(args.add_subnet)
-        except ipaddr.AddressValueError:
+        if is_subnet_valid(args.add_subnet):
             print '%s is not valid' % args.add_subnet
             return 0
         add_subnet(args.add_subnet)
