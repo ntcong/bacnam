@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask
+from flask import Flask, request
 from bacnam import *
 import string
 
@@ -18,6 +18,8 @@ def api_ip_usage():
 
 @app.route('/ip/<ip>')
 def api_get_ip_latency(ip):
+    if not is_ip_valid(ip):
+        return "wrong IP format"
     ip = ipaddr.IPv4Address(ip)
     subnet_lists = get_subnet()
     for subnet in subnet_lists:
@@ -36,19 +38,22 @@ def api_subnet_usage():
     return 'You should be at /subnet/<number>'
 
 
-@app.route('/subnet/<subnet>')
+@app.route('/subnet/<subnet>', methods=['GET', 'POST'])
 def api_get_subnet_latency(subnet):
     subnet = string.replace(subnet, '_', '/')
-    if is_subnet_valid(subnet):
+    if not is_subnet_valid(subnet):
         return "Wrong subnet format"
-    data = get_subnet_latency(subnet)
-    ping_hn, ping_hcm, diff = pickle.loads(data)
-    if diff > 0:
-        return "Subnet at HCM"
-    else:
-        return "Subnet at HN"
+    if request.method == 'GET':  # get IP
+        data = get_subnet_latency(subnet)
+        ping_hn, ping_hcm, diff = pickle.loads(data)
+        if diff > 0:
+            return "Subnet at HCM"
+        else:
+            return "Subnet at HN"
+    elif request.method == 'POST':
+        return "Text Message: " + subnet
 
 
 if __name__ == '__main__':
     app.debug = True
-    app.run()
+    app.run(host='0.0.0.0', port=80)
