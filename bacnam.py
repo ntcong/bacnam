@@ -145,10 +145,19 @@ def scan_hcm(id):
 
 def is_subnet_valid(subnet):
     try:
-        ipaddr.IPv4Network(args.add_subnet)
+        ipaddr.IPv4Network(subnet)
     except ipaddr.AddressValueError:
         return False
     return True
+
+
+def is_ip_valid(ip):
+    try:
+        ipaddr.IPv4Network(ip)
+    except ipaddr.AddressValueError:
+        return False
+    return True
+
 
 def main():
     if args.add_subnet != None:
