@@ -6,6 +6,10 @@ import string
 app = Flask(__name__)
 
 
+def check_auth(username, password):
+    return username == 'admin' and password == '123456'
+
+
 @app.route('/')
 def api_root():
     return 'Welcome'
@@ -51,6 +55,9 @@ def api_get_subnet_latency(subnet):
         else:
             return "Subnet at HN"
     elif request.method == 'POST':
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password) :
+            return "Authentication Failed."
         add_subnet(subnet)
         return "Success"
 
