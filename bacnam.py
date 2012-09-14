@@ -23,10 +23,6 @@ MIN_DIFFERENT = 5  # min latency different between HN and HCM
 
 
 redis_server = redis.Redis(SERVER_ADDRESS)
-parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
-parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
-parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
-args = parser.parse_args()
 
 
 def init_worker():
@@ -198,4 +194,9 @@ def main():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
+    parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
+    parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
+    args = parser.parse_args()
+
     main()
