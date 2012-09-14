@@ -39,12 +39,11 @@ def get_subnet_latency(subnet):
 
 
 def get_subnet():
-    return redis_server.lrange(REDIS_SUBNET_KEY, 0, -1)
-    #return redis_server.blpop(REDIS_SUBNET_KEY)[1]
+    return redis_server.smembers(REDIS_SUBNET_KEY)
 
 
 def add_subnet(subnet):
-    redis_server.lpush(REDIS_SUBNET_KEY, subnet)  # push subnet ontop for faster update
+    redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
 
 def add_to_queue(subnet, ip_list, latency):
