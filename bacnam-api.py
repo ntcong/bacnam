@@ -51,7 +51,8 @@ def api_get_subnet_latency(subnet):
         else:
             return "Subnet at HN"
     elif request.method == 'POST':
-        return "Text Message: " + subnet
+        add_subnet(subnet)
+        return "Success"
 
 
 if __name__ == '__main__':
