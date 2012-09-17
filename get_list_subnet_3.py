@@ -4,7 +4,7 @@ import random
 from bacnam import *
 
 list_ip = []
-
+subnet_list = []
 
 def is_subnet_valid(subnet):
     try:
@@ -49,34 +49,56 @@ def test_ip(r):
     except IndexError:
         return None
 
+
+def scan_subnet(subnet):
+    subnet = ipaddr.IPv4Network(subnet)
+    sample_IP = []
+    total_latency = 0
+    tried = 1
+    while len(sample_IP) < SAMPLE_IP_SIZE and tried < 2 * MAX_TRYING:
+        if tried < MAX_TRYING:
+            IP = get_begin_random_IP(subnet)
+        else:
+            IP = get_random_IP(subnet)
+        print 'Trying %s' % IP,
+        latency = get_latency(IP)
+        print latency
+        if latency != -1:
+            total_latency += latency
+            sample_IP.append(IP)
+        tried += 1
+    if len(sample_IP) != 0:
+        avg_latency = total_latency / len(sample_IP)
+    else:
+        avg_latency = TIMEOUT
+    if avg_latency < 98:
+        list_ip.append(str(subnet))
+
+
+def main():
+    worker = Pool(MAX_POOL, init_worker)
+    try:
+        for subnet in subnet_list:
+            worker.apply_async(scan_subnet, (subnet,))
+        time.sleep(5)
+    except KeyboardInterrupt:
+        print 'Terminating...'
+        worker.terminate()
+        worker.join()
+        return
+    worker.close()
+    worker.join()
+
 with open('new.xml', 'r') as inf:
     for line in inf:
         if line[-1] == '\n':
             subnet = line[:-1]
         else:
             subnet = line
-        subnet = ipaddr.IPv4Network(subnet)
-        sample_IP = []
-        total_latency = 0
-        tried = 1
-        while len(sample_IP) < SAMPLE_IP_SIZE and tried < 2 * MAX_TRYING:
-            if tried < MAX_TRYING:
-                IP = get_begin_random_IP(subnet)
-            else:
-                IP = get_random_IP(subnet)
-            print 'Trying %s' % IP,
-            latency = get_latency(IP)
-            print latency
-            if latency != -1:
-                total_latency += latency
-                sample_IP.append(IP)
-            tried += 1
-        if len(sample_IP) != 0:
-            avg_latency = total_latency / len(sample_IP)
-        else:
-            avg_latency = TIMEOUT
-        if avg_latency < 98:
-            list_ip.append(str(subnet))
+        subnet_list.append(subnet)
+
+
+main()
 
 
 with open('bacnam3.sh', 'w') as ouf:
