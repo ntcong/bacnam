@@ -23,18 +23,31 @@ def api_ip_usage():
 @app.route('/ip/<ip>')
 def api_get_ip_latency(ip):
     if not is_ip_valid(ip):
-        return "wrong IP format"
+        return "-1"
     ip = ipaddr.IPv4Address(ip)
     subnet_lists = get_subnet()
+    data_list = {}
     for subnet in subnet_lists:
         if ip in ipaddr.IPv4Network(subnet):
             data = get_subnet_latency(subnet)
+            data_list[subnet]= data
+    if data_list == {}:
+        return "-1"
+    diff = 0
+    data_list = sorted(data_list,reverse=True)
+    for data in data_list:
+        ping_hn, ping_hcm, diff = pickle.loads(data[1])
+        if ping_hn == ping_hcm == TIMEOUT:
+            continue
+        else:
             break
-    ping_hn, ping_hcm, diff = pickle.loads(data)
+
     if diff > 0:
-        return "Subnet at HCM"
+        return "0"
+    elif diff < 0:
+        return "1"
     else:
-        return "Subnet at HN"
+        return "-1"
 
 
 @app.route('/subnet/')
@@ -46,14 +59,14 @@ def api_subnet_usage():
 def api_get_subnet_latency(subnet):
     subnet = string.replace(subnet, '_', '/')
     if not is_subnet_valid(subnet):
-        return "Wrong subnet format"
+        return "-1"
     if request.method == 'GET':  # get IP
         data = get_subnet_latency(subnet)
         ping_hn, ping_hcm, diff = pickle.loads(data)
         if diff > 0:
-            return "Subnet at HCM"
+            return "0"
         else:
-            return "Subnet at HN"
+            return "1"
     elif request.method == 'POST':
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password) :
