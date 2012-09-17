@@ -38,8 +38,11 @@ def get_subnet_latency(subnet):
     return redis_server.get(subnet)
 
 
-def get_subnet():
-    return redis_server.smembers(REDIS_SUBNET_KEY)
+def get_subnet(first_octet = None):
+    if first_octet == None:
+        return redis_server.smembers(REDIS_SUBNET_KEY)
+    else:
+        return redis_server.smembers('subnet:%s' % first_octet)
 
 
 def add_subnet(subnet):
