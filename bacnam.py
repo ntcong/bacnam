@@ -45,6 +45,9 @@ def get_subnet():
 def add_subnet(subnet):
     redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
+def remove_subnet(subnet):
+    redis_server.srem(REDIS_SUBNET_KEY, subnet)
+
 
 def add_to_queue(subnet, ip_list, latency):
     data = [str(subnet)]
@@ -131,7 +134,10 @@ def scan_subnet(subnet):
         avg_latency = total_latency / len(sample_IP)
     else:
         avg_latency = TIMEOUT
-    add_to_queue(subnet, sample_IP, avg_latency)
+    if avg_latency == TIMEOUT:
+        remove_subnet(subnet)
+    else:
+        add_to_queue(subnet, sample_IP, avg_latency)
 
 
 def scan_hcm(id):
@@ -161,6 +167,21 @@ def main():
             return 0
         add_subnet(args.add_subnet)
         return
+    if args.file != None:
+        try:
+            with open(args.file,'r') as inf:
+                for line in inf:
+                    if line[-1] == '\n':
+                        subnet = line[:-1]
+                    else:
+                        subnet = line
+                    if not is_subnet_valid(subnet):
+                        print '%s is not valid' % subnet
+                    add_subnet(subnet)
+                return
+        except IOError:
+            print 'Invalid file'
+            return
     if args.location == 'HN':
         worker = Pool(MAX_POOL, init_worker)
         print 'Getting list subnet...'
@@ -196,6 +217,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
     parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
     parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
+    parser.add_argument('--add-file', help='Add a list of subnets to processing queue from file', action="store", metavar="filename")
     args = parser.parse_args()
 
     main()
