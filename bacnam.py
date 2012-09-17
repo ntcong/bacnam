@@ -167,9 +167,9 @@ def main():
             return 0
         add_subnet(args.add_subnet)
         return
-    if args.file != None:
+    if args.add_file != None:
         try:
-            with open(args.file,'r') as inf:
+            with open(args.add_file,'r') as inf:
                 for line in inf:
                     if line[-1] == '\n':
                         subnet = line[:-1]
