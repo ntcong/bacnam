@@ -24,8 +24,8 @@ def api_ip_usage():
 def api_get_ip_latency(ip):
     if not is_ip_valid(ip):
         return "-1"
-    ip = ipaddr.IPv4Address(ip)
     subnet_lists = get_subnet(ip[:ip.find('.')])
+    ip = ipaddr.IPv4Address(ip)
     data_list = {}
     for subnet in subnet_lists:
         if ip in ipaddr.IPv4Network(subnet):
