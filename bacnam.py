@@ -20,9 +20,9 @@ TIMEOUT = 100  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 MIN_DIFFERENT = 5  # min latency different between HN and HCM
+REDIS_PASSWORD = 'foobared'
 
-
-redis_server = redis.Redis(SERVER_ADDRESS)
+redis_server = redis.Redis(SERVER_ADDRESS, password=REDIS_PASSWORD)
 
 
 def init_worker():
