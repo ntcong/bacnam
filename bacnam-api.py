@@ -75,9 +75,10 @@ def api_get_subnet_latency(subnet):
         if data is None:
             keys = []
             subnet_lists = get_subnet()
+            isubnet = ipaddr.IPv4Network(subnet)
             for net in subnet_lists:
-                if subnet in net:
-                    keys.append(net)
+                if isubnet in ipaddr.IPv4Network(net):
+                    keys.append(ipaddr.IPv4Network(net))
             size = len(keys)
             for i in xrange(size):
                 for j in xrange(size-1,i,-1):  # down from size to i+1
@@ -86,7 +87,7 @@ def api_get_subnet_latency(subnet):
                         keys[i] = keys[j]
                         keys[j] = tmp
             for key in keys:
-                data = get_subnet_latency(key)
+                data = get_subnet_latency(str(key))
                 if data is not None:
                     break
         ping_hn, ping_hcm, diff = pickle.loads(data)
