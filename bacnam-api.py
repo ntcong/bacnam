@@ -30,7 +30,7 @@ def api_get_ip_latency(ip):
     for subnet in subnet_lists:
         if ip in ipaddr.IPv4Network(subnet):
             data = get_subnet_latency(subnet)
-            data_list[subnet]= data
+            data_list[ipaddr.IPv4Network(subnet)]= data
     if data_list == {}:
         return "-1"
     diff = 0

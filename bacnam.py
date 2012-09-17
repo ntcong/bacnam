@@ -162,36 +162,34 @@ def main():
         add_subnet(args.add_subnet)
         return
     if args.location == 'HN':
-        while 1:
-            worker = Pool(MAX_POOL, init_worker)
-            print 'Getting list subnet...'
-            subnet_list = get_subnet()
-            print 'Done...'
-            try:
-                for subnet in subnet_list:
-                    worker.apply_async(scan_subnet, (subnet,))
-                time.sleep(5)
-            except KeyboardInterrupt:
-                print 'Terminating...'
-                worker.terminate()
-                worker.join()
-                return
-            worker.close()
+        worker = Pool(MAX_POOL, init_worker)
+        print 'Getting list subnet...'
+        subnet_list = get_subnet()
+        print 'Done...'
+        try:
+            for subnet in subnet_list:
+                worker.apply_async(scan_subnet, (subnet,))
+            time.sleep(5)
+        except KeyboardInterrupt:
+            print 'Terminating...'
+            worker.terminate()
             worker.join()
+            return
+        worker.close()
+        worker.join()
     elif args.location == 'HCM':
-        while 1:
-            worker = Pool(MAX_POOL, init_worker)
-            try:
-                for i in range(MAX_POOL):
-                    worker.apply_async(scan_hcm, (i,))
-                time.sleep(5)
-            except KeyboardInterrupt:
-                print 'Terminating...'
-                worker.terminate()
-                worker.join()
-                return
-            worker.close()
+        worker = Pool(MAX_POOL, init_worker)
+        try:
+            for i in range(MAX_POOL):
+                worker.apply_async(scan_hcm, (i,))
+            time.sleep(5)
+        except KeyboardInterrupt:
+            print 'Terminating...'
+            worker.terminate()
             worker.join()
+            return
+        worker.close()
+        worker.join()
 
 
 if __name__ == '__main__':
