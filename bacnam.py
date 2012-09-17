@@ -43,9 +43,13 @@ def get_subnet():
 
 
 def add_subnet(subnet):
+    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
+    redis_server.sadd(subnet_store, subnet)
     redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
 def remove_subnet(subnet):
+    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
+    redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
 
 
