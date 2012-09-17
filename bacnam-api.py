@@ -34,10 +34,16 @@ def api_get_ip_latency(ip):
     if data_list == {}:
         return "-1"
     diff = 0
-    keys = sorted(data_list.keys(),reverse=True)
+    keys = data_list.keys()
+    size = len(keys)
+    for i in xrange(size):
+        for j in xrange(size-1,i,-1):  # down from size to i+1
+            if keys[j] in keys[i]:
+                tmp = keys[i]
+                keys[i] = keys[j]
+                keys[j] = tmp
     datas = [data_list[key] for key in keys]
-    for subnet in datas:
-        data = data_list[subnet]
+    for data in datas:
         if data is None:
             continue
         ping_hn, ping_hcm, diff = pickle.loads(data)
