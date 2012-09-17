@@ -15,8 +15,8 @@ SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 SAMPLE_PROB = 50  # number of IP in the beginning that have higher chance of online
 MAX_TRYING = 10  # number of retrying before drop a subnet
-MAX_POOL = 5  # max number of worker
-TIMEOUT = 300  # ping timeout
+MAX_POOL = 8  # max number of worker
+TIMEOUT = 100  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 MIN_DIFFERENT = 5  # min latency different between HN and HCM
@@ -156,7 +156,7 @@ def is_ip_valid(ip):
 
 def main():
     if args.add_subnet != None:
-        if is_subnet_valid(args.add_subnet):
+        if not is_subnet_valid(args.add_subnet):
             print '%s is not valid' % args.add_subnet
             return 0
         add_subnet(args.add_subnet)
@@ -164,7 +164,9 @@ def main():
     if args.location == 'HN':
         while 1:
             worker = Pool(MAX_POOL, init_worker)
+            print 'Getting list subnet...'
             subnet_list = get_subnet()
+            print 'Done...'
             try:
                 for subnet in subnet_list:
                     worker.apply_async(scan_subnet, (subnet,))
