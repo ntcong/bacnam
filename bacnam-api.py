@@ -70,8 +70,25 @@ def api_get_subnet_latency(subnet):
     subnet = string.replace(subnet, '_', '/')
     if not is_subnet_valid(subnet):
         return "-1"
-    if request.method == 'GET':  # get IP
+    if request.method == 'GET':  # get subnet
         data = get_subnet_latency(subnet)
+        if data is None:
+            keys = []
+            subnet_lists = get_subnet()
+            for net in subnet_lists:
+                if subnet in net:
+                    keys.append(net)
+            size = len(keys)
+            for i in xrange(size):
+                for j in xrange(size-1,i,-1):  # down from size to i+1
+                    if keys[j] in keys[i]:
+                        tmp = keys[i]
+                        keys[i] = keys[j]
+                        keys[j] = tmp
+            for key in keys:
+                data = get_subnet_latency(key)
+                if data is not None:
+                    break
         ping_hn, ping_hcm, diff = pickle.loads(data)
         if diff > 0:
             return "0"
