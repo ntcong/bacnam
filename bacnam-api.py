@@ -34,9 +34,13 @@ def api_get_ip_latency(ip):
     if data_list == {}:
         return "-1"
     diff = 0
-    data_list = sorted(data_list,reverse=True)
-    for data in data_list:
-        ping_hn, ping_hcm, diff = pickle.loads(data[1])
+    keys = sorted(data_list.keys(),reverse=True)
+    datas = [data_list[key] for key in keys]
+    for subnet in datas:
+        data = data_list[subnet]
+        if data is None:
+            continue
+        ping_hn, ping_hcm, diff = pickle.loads(data)
         if ping_hn == ping_hcm == TIMEOUT:
             continue
         else:
