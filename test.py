@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+from bacnam import *
+import random
+api = __import__("bacnam-api")
+
+
+# gi.country_code_by_addr('42.117.9.55')
+# 'US'
+ip_range_list = []
+
+
+
+with open('IPBN.csv', 'r') as inf:
+    for line in inf:
+        data = line.split(',')
+        code = 1 if data[4][1:-1] == 'VN' else 0
+        ip_range_list.append([data[0][1:-1], data[1][1:-1], code])
+
+
+def get_random_IP(begin,end):
+    begin = ipaddr.IPv4Address(begin)
+    end = ipaddr.IPv4Address(end)
+    diff = int(end)-int(begin)
+    diff = random.randint(1,diff-1)
+    return str(begin+diff)
+
+def get_region(num):
+    if num == 0:
+        return 'HCM'
+    elif num == 1:
+        return 'HN'
+    else:
+        return 'UNKNOWN'
+
+while 1:
+    for begin,end,code in ip_range_list:
+        for i in xrange(50):
+            ip = get_random_IP(begin, end)
+            rep = api.api_get_ip_latency(ip)
+            print 'IP: %s, Location:%s, Result:%s' % (ip,get_region(code),get_region(rep)),
+            if rep == code:
+                print '-- CORRECT'
+            else:
+                print '-- WRONG'
+                raw_input()
+
+
+
