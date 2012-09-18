@@ -14,7 +14,7 @@ with open('IPBN.csv', 'r') as inf:
     for line in inf:
         data = line.split(',')
         code = 1 if data[4][1:-1] == 'VN' else 0
-        ip_range_list.append([data[0][1:-1], data[1][1:-1], code])
+        ip_range_list.append([data[0][1:-1], data[1][1:-1], int(code)])
 
 
 def get_random_IP(begin,end):
@@ -25,6 +25,7 @@ def get_random_IP(begin,end):
     return str(begin+diff)
 
 def get_region(num):
+    num = int(num)
     if num == 0:
         return 'HCM'
     elif num == 1:
@@ -32,17 +33,23 @@ def get_region(num):
     else:
         return 'UNKNOWN'
 
-while 1:
-    for begin,end,code in ip_range_list:
-        for i in xrange(50):
-            ip = get_random_IP(begin, end)
-            rep = api.api_get_ip_latency(ip)
-            print 'IP: %s, Location:%s, Result:%s' % (ip,get_region(code),get_region(rep)),
-            if rep == code:
-                print '-- CORRECT'
-            else:
-                print '-- WRONG'
-                raw_input()
 
+correct = 0
+wrong = 0
+try:
+    while 1:
+        for begin,end,code in ip_range_list:
+            for i in xrange(50):
+                ip = get_random_IP(begin, end)
+                rep = int(api.api_get_ip_latency(ip))
+                print 'IP: %s, Location:%s, Result:%s' % (ip,get_region(code),get_region(rep)),
+                if rep == code:
+                    print '-- CORRECT'
+                    correct += 1
+                else:
+                    print '-- WRONG'
+                    wrong += 1
+except KeyboardInterrupt:
+    print '%s%' % (correct*100/(correct+wrong))
 
 

@@ -13,8 +13,8 @@ from multiprocessing import Pool
 
 SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
-SAMPLE_PROB = 50  # number of IP in the beginning that have higher chance of online
-MAX_TRYING = 10  # number of retrying before drop a subnet
+SAMPLE_PROB = 100  # number of IP in the beginning that have higher chance of online
+MAX_TRYING = 50  # number of retrying before drop a subnet
 MAX_POOL = 8  # max number of worker
 TIMEOUT = 100  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
