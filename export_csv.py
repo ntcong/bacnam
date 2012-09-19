@@ -20,7 +20,7 @@ with open('IPBN2.csv', 'w') as ouf:
         if data == None:
             continue
         ping_hn, ping_hcm, diff = pickle.loads(data)
-        if diff == 0:
+        if int(diff) == 0:
             continue
         ouf.write('"%s","%s","%s","%s","%s","%s"\n' % ( \
             net[0], net[-1], int(net[0]), int(net[-1]), \
