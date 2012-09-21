@@ -204,34 +204,36 @@ def main():
             print 'Invalid file'
             return
     if args.location == 'HN':
-        worker = Pool(MAX_POOL, init_worker)
-        print 'Getting list subnet...'
-        subnet_list = get_subnet()
-        print 'Done...'
-        try:
-            for subnet in subnet_list:
-                worker.apply_async(scan_subnet, (subnet,))
-            time.sleep(5)
-        except KeyboardInterrupt:
-            print 'Terminating...'
-            worker.terminate()
+        while 1:
+            worker = Pool(MAX_POOL, init_worker)
+            print 'Getting list subnet...'
+            subnet_list = get_subnet()
+            print 'Done...'
+            try:
+                for subnet in subnet_list:
+                    worker.apply_async(scan_subnet, (subnet,))
+                time.sleep(5)
+            except KeyboardInterrupt:
+                print 'Terminating...'
+                worker.terminate()
+                worker.join()
+                return
+            worker.close()
             worker.join()
-            return
-        worker.close()
-        worker.join()
     elif args.location == 'HCM':
-        worker = Pool(MAX_POOL, init_worker)
-        try:
-            for i in range(MAX_POOL):
-                worker.apply_async(scan_hcm, (i,))
-            time.sleep(5)
-        except KeyboardInterrupt:
-            print 'Terminating...'
-            worker.terminate()
+        while 1:
+            worker = Pool(MAX_POOL, init_worker)
+            try:
+                for i in range(MAX_POOL):
+                    worker.apply_async(scan_hcm, (i,))
+                time.sleep(5)
+            except KeyboardInterrupt:
+                print 'Terminating...'
+                worker.terminate()
+                worker.join()
+                return
+            worker.close()
             worker.join()
-            return
-        worker.close()
-        worker.join()
 
 
 if __name__ == '__main__':
