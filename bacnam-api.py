@@ -24,34 +24,17 @@ def api_ip_usage():
 def api_get_ip_latency(ip):
     if not is_ip_valid(ip):
         return "-1"
-    subnet_lists = get_subnet(ip[:ip.find('.')])
+    octet = ip.split('.')
+    subnet_lists = get_subnet(octet[0],octet[1],octet[2])
     ip = ipaddr.IPv4Address(ip)
-    data_list = {}
+    data = None
     for subnet in subnet_lists:
         if ip in ipaddr.IPv4Network(subnet):
             data = get_subnet_latency(subnet)
-            data_list[ipaddr.IPv4Network(subnet)]= data
-    if data_list == {}:
-        return "-1"
-    diff = 0
-    keys = data_list.keys()
-    size = len(keys)
-    for i in xrange(size):
-        for j in xrange(size-1,i,-1):  # down from size to i+1
-            if keys[j] in keys[i]:
-                tmp = keys[i]
-                keys[i] = keys[j]
-                keys[j] = tmp
-    datas = [data_list[key] for key in keys]
-    for data in datas:
-        if data is None:
-            continue
-        ping_hn, ping_hcm, diff = pickle.loads(data)
-        if ping_hn == ping_hcm == TIMEOUT:
-            continue
-        else:
             break
-
+    if data == None:
+        return -1
+    ping_hn, ping_hcm, diff = pickle.loads(data)
     if diff > 0:
         return "0"
     elif diff < 0:
@@ -73,23 +56,24 @@ def api_get_subnet_latency(subnet):
     if request.method == 'GET':  # get subnet
         data = get_subnet_latency(subnet)
         if data is None:
-            keys = []
-            subnet_lists = get_subnet()
-            isubnet = ipaddr.IPv4Network(subnet)
-            for net in subnet_lists:
-                if isubnet in ipaddr.IPv4Network(net):
-                    keys.append(ipaddr.IPv4Network(net))
-            size = len(keys)
-            for i in xrange(size):
-                for j in xrange(size-1,i,-1):  # down from size to i+1
-                    if keys[j] in keys[i]:
-                        tmp = keys[i]
-                        keys[i] = keys[j]
-                        keys[j] = tmp
-            for key in keys:
-                data = get_subnet_latency(str(key))
-                if data is not None:
-                    break
+            return -1
+        #     keys = []
+        #     subnet_lists = get_subnet()
+        #     isubnet = ipaddr.IPv4Network(subnet)
+        #     for net in subnet_lists:
+        #         if isubnet in ipaddr.IPv4Network(net):
+        #             keys.append(ipaddr.IPv4Network(net))
+        #     size = len(keys)
+        #     for i in xrange(size):
+        #         for j in xrange(size-1,i,-1):  # down from size to i+1
+        #             if keys[j] in keys[i]:
+        #                 tmp = keys[i]
+        #                 keys[i] = keys[j]
+        #                 keys[j] = tmp
+        #     for key in keys:
+        #         data = get_subnet_latency(str(key))
+        #         if data is not None:
+        #             break
         ping_hn, ping_hcm, diff = pickle.loads(data)
         if diff > 0:
             return "0"
