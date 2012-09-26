@@ -70,7 +70,7 @@ def get_subnet(subnet = None):
         result = set()
         for i in xrange(4):
             key += ':' + str(ip[i])
-            result.union(redis_server.smembers(key))
+            result = result.union(redis_server.smembers(key))
         return result
 
 
