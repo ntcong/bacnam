@@ -55,12 +55,12 @@ def add_subnet(subnet):
         net = net.subnet(24-net.prefixlen)
     for subnet in net:
         subnet = str(subnet)
-        subnet_store = 'subnet:%s:%s:%s'% tuple(subnet.split('.')[:3])
+        subnet_store = 'subnet:%s'% tuple(subnet.split('.')[:3])
         redis_server.sadd(subnet_store, subnet)
         redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
 def remove_subnet(subnet):
-    subnet_store = 'subnet:%s:%s:%s'% tuple(subnet.split('.')[:3])
+    subnet_store = 'subnet:%s'% tuple(subnet.split('.')[:3])
     redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
 
