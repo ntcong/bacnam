@@ -9,9 +9,10 @@ import argparse
 import sys
 import signal
 import time
+import os
 from multiprocessing import Pool
 
-SERVER_ADDRESS = 'localhost'  # redis server location
+REDIS_SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 SAMPLE_PROB = 100  # number of IP in the beginning that have higher chance of online
 MAX_TRYING = 50  # number of retrying before drop a subnet
@@ -22,8 +23,21 @@ REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 MIN_DIFFERENT = 5  # min latency different between HN and HCM
 REDIS_PASSWORD = 'foobared'
 
-redis_server = redis.Redis(SERVER_ADDRESS, password=REDIS_PASSWORD)
+redis_server = redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
 
+def get_env(env):
+    try:
+        return os.environ[env]
+    except KeyError:
+        return None
+
+def read_env():
+    global REDIS_PASSWORD
+    global REDIS_SERVER_ADDRESS
+    if get_env('REDIS_PASSWORD') != None:
+        REDIS_PASSWORD = get_env('REDIS_PASSWORD')
+    if get_env('REDIS_SERVER_ADDRESS') != None:
+        REDIS_SERVER_ADDRESS = get_env('REDIS_SERVER_ADDRESS')
 
 def init_worker():
     '''
@@ -227,6 +241,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
     parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
     parser.add_argument('--add-file', help='Add a list of subnets to processing queue from file', action="store", metavar="filename")
+    read_env()
     args = parser.parse_args()
 
     main()
