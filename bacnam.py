@@ -23,7 +23,7 @@ REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
 MIN_DIFFERENT = 5  # min latency different between HN and HCM
 REDIS_PASSWORD = 'foobared'
 
-redis_server = redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
+redis_server = None
 
 def get_env(env):
     try:
@@ -37,9 +37,9 @@ def read_env():
     global redis_server
     if get_env('REDIS_PASSWORD') != None:
         REDIS_PASSWORD = get_env('REDIS_PASSWORD')
-        redis_server = redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
     if get_env('REDIS_SERVER_ADDRESS') != None:
         REDIS_SERVER_ADDRESS = get_env('REDIS_SERVER_ADDRESS')
+    redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
 
 def init_worker():
     '''
