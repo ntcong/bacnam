@@ -54,7 +54,7 @@ def api_get_ip_latency(ip):
 
     if diff > MIN_DIFFERENT:
         return "0"
-    elif diff < MIN_DIFFERENT:
+    elif diff < -MIN_DIFFERENT:
         return "1"
     else:
         return "0"  # return HCM for all unknown result by now
