@@ -38,29 +38,20 @@ def get_subnet_latency(subnet):
     return redis_server.get(subnet)
 
 
-def get_subnet(octet1 = None, octet2 = None, octet3 = None):
-    if octet1 == None:
+def get_subnet(first_octet = None):
+    if first_octet == None:
         return redis_server.smembers(REDIS_SUBNET_KEY)
-    # elif octet2 == None:
-    #     return redis_server.smembers('subnet:%s' % octet1)
-    # elif octet3 == None:
-    #     return redis_server.smembers('subnet:%s:%s' % (octet1, octet2))
     else:
-        return redis_server.smembers('subnet:%s:%s:%s' % (octet1, octet2, octet3))
+        return redis_server.smembers('subnet:%s' % first_octet)
 
 
 def add_subnet(subnet):
-    net = ipaddr.IPNetwork(subnet)
-    if net.prefixlen < 24:  # split all the subnet to /24
-        net = net.subnet(24-net.prefixlen)
-    for subnet in net:
-        subnet = str(subnet)
-        subnet_store = 'subnet:%s'% tuple(subnet.split('.')[:3])
-        redis_server.sadd(subnet_store, subnet)
-        redis_server.sadd(REDIS_SUBNET_KEY, subnet)
+    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
+    redis_server.sadd(subnet_store, subnet)
+    redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
 def remove_subnet(subnet):
-    subnet_store = 'subnet:%s'% tuple(subnet.split('.')[:3])
+    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
     redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
 
@@ -150,7 +141,10 @@ def scan_subnet(subnet):
         avg_latency = total_latency / len(sample_IP)
     else:
         avg_latency = TIMEOUT
-    add_to_queue(subnet, sample_IP, avg_latency)
+    if avg_latency == TIMEOUT:
+        remove_subnet(subnet)
+    else:
+        add_to_queue(subnet, sample_IP, avg_latency)
 
 
 def scan_hcm(id):
