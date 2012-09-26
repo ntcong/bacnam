@@ -36,6 +36,7 @@ def get_region(num):
 
 correct = 0
 wrong = 0
+read_env()
 try:
     while 1:
         for begin,end,code in ip_range_list:
