@@ -16,7 +16,7 @@ REDIS_SERVER_ADDRESS = 'localhost'  # redis server location
 SAMPLE_IP_SIZE = 5  # number of sample IP from a subnet
 SAMPLE_PROB = 100  # number of IP in the beginning that have higher chance of online
 MAX_TRYING = 50  # number of retrying before drop a subnet
-MAX_POOL = 8  # max number of worker
+MAX_POOL = 10  # max number of worker
 TIMEOUT = 100  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
@@ -34,8 +34,10 @@ def get_env(env):
 def read_env():
     global REDIS_PASSWORD
     global REDIS_SERVER_ADDRESS
+    global redis_server
     if get_env('REDIS_PASSWORD') != None:
         REDIS_PASSWORD = get_env('REDIS_PASSWORD')
+        redis_server = redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
     if get_env('REDIS_SERVER_ADDRESS') != None:
         REDIS_SERVER_ADDRESS = get_env('REDIS_SERVER_ADDRESS')
 
