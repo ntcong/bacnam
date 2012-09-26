@@ -51,6 +51,6 @@ try:
                     print '-- WRONG'
                     wrong += 1
 except KeyboardInterrupt:
-    print '%s%' % (correct*100/(correct+wrong))
+    print 'Rate %s percent '% (correct*100/(correct+wrong))
 
 
