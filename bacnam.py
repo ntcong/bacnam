@@ -52,20 +52,30 @@ def get_subnet_latency(subnet):
     return redis_server.get(subnet)
 
 
-def get_subnet(first_octet = None):
-    if first_octet == None:
+def get_redis_key_from_subnet(subnet):
+    subnet = subnet.split('/')
+    ip = subnet[0]; mask = int(subnet[1])
+    ip = ip.split('.')
+    key = 'subnet'
+    for i in xrange(mask/8):
+        key += ':' + str(ip[i])
+    return key
+
+def get_subnet(subnet = None):
+    if subnet == None:
         return redis_server.smembers(REDIS_SUBNET_KEY)
     else:
-        return redis_server.smembers('subnet:%s' % first_octet)
+        key = get_redis_key_from_subnet(subnet)
+        return redis_server.smembers(key)
 
 
 def add_subnet(subnet):
-    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
+    subnet_store = get_redis_key_from_subnet(subnet)
     redis_server.sadd(subnet_store, subnet)
     redis_server.sadd(REDIS_SUBNET_KEY, subnet)
 
 def remove_subnet(subnet):
-    subnet_store = 'subnet:%s'% subnet[:subnet.find('.')]
+    subnet_store = get_redis_key_from_subnet(subnet)
     redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
 
