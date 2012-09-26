@@ -39,7 +39,7 @@ def read_env():
         REDIS_PASSWORD = get_env('REDIS_PASSWORD')
     if get_env('REDIS_SERVER_ADDRESS') != None:
         REDIS_SERVER_ADDRESS = get_env('REDIS_SERVER_ADDRESS')
-    redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
+    redis_server = redis.Redis(REDIS_SERVER_ADDRESS, password=REDIS_PASSWORD)
 
 def init_worker():
     '''
