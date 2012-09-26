@@ -53,20 +53,14 @@ def add_subnet(subnet):
     net = ipaddr.IPNetwork(subnet)
     if net.prefixlen < 24:  # split all the subnet to /24
         net = net.subnet(24-net.prefixlen)
-    else:
-        net = [net]
     for subnet in net:
         subnet = str(subnet)
         subnet_store = 'subnet:%s:%s:%s'% tuple(subnet.split('.')[:3])
-        print 'Added %s' % subnet
         redis_server.sadd(subnet_store, subnet)
         redis_server.sadd(REDIS_SUBNET_KEY, subnet)
-    print 'Done! Added %s subnets' % len(net)
-    return len(net)
 
 def remove_subnet(subnet):
     subnet_store = 'subnet:%s:%s:%s'% tuple(subnet.split('.')[:3])
-    print 'Removed %s' % subnet_store
     redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
 
@@ -188,7 +182,6 @@ def main():
         return
     if args.add_file != None:
         try:
-            total = 0
             with open(args.add_file,'r') as inf:
                 for line in inf:
                     if line[-1] == '\n':
@@ -197,9 +190,8 @@ def main():
                         subnet = line
                     if not is_subnet_valid(subnet):
                         print '%s is not valid' % subnet
-                    total += add_subnet(subnet)
-            print 'Added total of %s subnets' % total
-            return
+                    add_subnet(subnet)
+                return
         except IOError:
             print 'Invalid file'
             return
