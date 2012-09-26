@@ -24,7 +24,7 @@ def api_ip_usage():
 def api_get_ip_latency(ip):
     if not is_ip_valid(ip):
         return "-1"
-    subnet_lists = get_subnet(ip[:ip.find('.')])
+    subnet_lists = get_subnet(ip)
     ip = ipaddr.IPv4Address(ip)
     data_list = {}
     for subnet in subnet_lists:
@@ -52,12 +52,13 @@ def api_get_ip_latency(ip):
         else:
             break
 
-    if diff > 0:
+    if diff > MIN_DIFFERENT:
         return "0"
-    elif diff < 0:
+    elif diff < MIN_DIFFERENT:
         return "1"
     else:
-        return "-1"
+        return "0"  # return HCM for all unknown result by now
+        #return "-1"
 
 
 @app.route('/subnet/')
