@@ -65,8 +65,13 @@ def get_subnet(subnet = None):
     if subnet == None:
         return redis_server.smembers(REDIS_SUBNET_KEY)
     else:
-        key = get_redis_key_from_subnet(subnet)
-        return redis_server.smembers(key)
+        ip = subnet.split('/')[0].split('.')
+        key = 'subnet'
+        result = set()
+        for i in xrange(4):
+            key += ':' + str(ip[i])
+            result.union(redis_server.smembers(key))
+        return result
 
 
 def add_subnet(subnet):
