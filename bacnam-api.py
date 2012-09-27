@@ -15,6 +15,17 @@ def api_root():
     return 'Welcome'
 
 
+@app.route('/csv')
+def apt_get_csv():
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password) :
+        return "Authentication Failed."
+    result = ""
+    with open("IPBN2.csv",'r') as inf:
+        for line in inf:
+            result += line
+    return result
+
 @app.route('/ip/')
 def api_ip_usage():
     return 'You should be at /ip/<number>'
@@ -53,9 +64,9 @@ def api_get_ip_latency(ip):
             break
 
     if diff > MIN_DIFFERENT:
-        return "0"
+        return "0"  # HCM
     elif diff < -MIN_DIFFERENT:
-        return "1"
+        return "1"   # HN
     else:
         return "0"  # return HCM for all unknown result by now
         #return "-1"
