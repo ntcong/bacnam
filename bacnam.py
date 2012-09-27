@@ -252,13 +252,12 @@ def main():
             worker.close()
             worker.join()
 
-
+read_env()
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Determine an IP address is located at HN or HCM')
     parser.add_argument('-l', '--location', help='Server location (HN/HCM)', action="store", default='HN', metavar="HN/HCM")
     parser.add_argument('--add-subnet', help='Add a subnet to processing queue', action="store", metavar="192.168.1.0/24")
     parser.add_argument('--add-file', help='Add a list of subnets to processing queue from file', action="store", metavar="filename")
-    read_env()
     args = parser.parse_args()
 
     main()
