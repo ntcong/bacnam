@@ -6,12 +6,12 @@ subnet_list = get_subnet()
 
 def get_region(num):
     num = int(num)
-    if num > 0:
-        return 'US'
-    elif num < 0:
-        return 'VN'
+    if diff > MIN_DIFFERENT:
+        return "US"  # HCM
+    elif diff < -MIN_DIFFERENT:
+        return "VN"   # HN
     else:
-        return 'UNKNOWN'
+        return "US"  # return HCM for all unknown result by now
 
 with open('IPBN2.csv', 'w') as ouf:
     for subnet in subnet_list:
