@@ -12,9 +12,9 @@ def check_auth(username, password):
 
 def get_region(num):
     num = int(num)
-    if diff > MIN_DIFFERENT:
+    if num > MIN_DIFFERENT:
         return "US"  # HCM
-    elif diff < -MIN_DIFFERENT:
+    elif num < -MIN_DIFFERENT:
         return "VN"   # HN
     else:
         return "US"  # return HCM for all unknown result
