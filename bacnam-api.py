@@ -11,7 +11,7 @@ def get_local_subnet():
     global subnet_lists
     if is_subnet_list_changed():
         subnet_lists = get_subnet()
-        set_subnet_list_unchanged
+        set_subnet_list_unchanged()
     return subnet_lists
 
 def check_auth(username, password):
