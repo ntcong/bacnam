@@ -5,6 +5,14 @@ import string
 
 app = Flask(__name__)
 
+subnet_lists = get_subnet()
+
+def get_local_subnet():
+    global subnet_lists
+    if is_subnet_list_changed():
+        subnet_lists = get_subnet()
+        set_subnet_list_unchanged
+    return subnet_lists
 
 def check_auth(username, password):
     return username == 'admin' and password == '123456'

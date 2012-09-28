@@ -20,6 +20,7 @@ MAX_POOL = 10  # max number of worker
 TIMEOUT = 100  # ping timeout
 REDIS_SUBNET_KEY = "list:subnet"  # redis key for store subnet list
 REDIS_LATENCY_KEY = "queue:latency"  # redis key for store latency queue
+REDIS_SUBNET_CHANGED_KEY = "bool:subnet_changed"
 MIN_DIFFERENT = 5  # min latency different between HN and HCM
 REDIS_PASSWORD = 'foobared'
 
@@ -80,12 +81,13 @@ def add_subnet(subnet):
     subnet_store = get_redis_key_from_subnet(subnet)
     redis_server.sadd(subnet_store, subnet)
     redis_server.sadd(REDIS_SUBNET_KEY, subnet)
+    set_subnet_list_changed()
 
 def remove_subnet(subnet):
     subnet_store = get_redis_key_from_subnet(subnet)
     redis_server.srem(subnet_store, subnet)
     redis_server.srem(REDIS_SUBNET_KEY, subnet)
-
+    set_subnet_list_changed()
 
 def add_to_queue(subnet, ip_list, latency):
     data = [str(subnet)]
@@ -95,12 +97,10 @@ def add_to_queue(subnet, ip_list, latency):
     data = pickle.dumps(data)
     redis_server.rpush(REDIS_LATENCY_KEY, data)
 
-
 def get_queue():
     data = redis_server.blpop(REDIS_LATENCY_KEY)
     data = pickle.loads(data[1])  # data[0] is key, data[1] is the value
     return data
-
 
 def get_random_IP(subnet):
     # IP start from 0->numhosts-1
@@ -108,11 +108,9 @@ def get_random_IP(subnet):
     num = random.randint(2, subnet.numhosts - 2)
     return subnet[num]
 
-
 def get_begin_random_IP(subnet):
     num = random.randint(2, SAMPLE_PROB)
     return subnet[num]
-
 
 def get_latency(IP):
     try:
@@ -124,7 +122,6 @@ def get_latency(IP):
     except socket.error:
         print "Ping Error"
         sys.exit(1)
-
 
 def scan_hcm_latency(data):
     # [subnet,hn_latency,IP_list]
@@ -148,7 +145,6 @@ def scan_hcm_latency(data):
     data.append(avg_latency)
     data = [data[1], avg_latency, data[1] - avg_latency]
     redis_server.set(subnet, pickle.dumps(data))
-
 
 def scan_subnet(subnet):
     print 'Processing %s' % subnet
@@ -177,10 +173,8 @@ def scan_subnet(subnet):
     else:
         add_to_queue(subnet, sample_IP, avg_latency)
 
-
 def scan_hcm(id):
     scan_hcm_latency(get_queue())
-
 
 def is_subnet_valid(subnet):
     try:
@@ -189,6 +183,14 @@ def is_subnet_valid(subnet):
         return False
     return True
 
+def is_subnet_list_changed():
+    return redis_server.get(REDIS_SUBNET_CHANGED_KEY)==1
+
+def set_subnet_list_changed():
+    redis_server.set(REDIS_SUBNET_CHANGED_KEY, 1)
+
+def set_subnet_list_unchanged():
+    redis_server.set(REDIS_SUBNET_CHANGED_KEY, 0)
 
 def is_ip_valid(ip):
     try:
