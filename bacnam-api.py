@@ -50,7 +50,7 @@ def apt_get_csv():
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password) :
         return "Authentication Failed."
-    subnet_list = get_subnet()
+    subnet_list = get_local_subnet()
     return Response(gen_csv_line(subnet_list), mimetype='text/csv')
 
 @app.route('/ip/')
@@ -113,7 +113,7 @@ def api_get_subnet_latency(subnet):
         data = get_subnet_latency(subnet)
         if data is None:
             keys = []
-            subnet_lists = get_subnet()
+            subnet_lists = get_local_subnet()
             isubnet = ipaddr.IPv4Network(subnet)
             for net in subnet_lists:
                 if isubnet in ipaddr.IPv4Network(net):
