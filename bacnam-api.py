@@ -27,23 +27,23 @@ def api_root():
 
 @app.route('/csv')
 def apt_get_csv():
+    def gen_csv_line(subnet_list):
+        for subnet in subnet_list:
+            net = ipaddr.IPv4Network(subnet)
+            data = get_subnet_latency(subnet)
+            if data == None:
+                continue
+            ping_hn, ping_hcm, diff = pickle.loads(data)
+            if int(diff) == 0:
+                continue
+            yield '"%s","%s","%s","%s","%s","%s"\n' % ( \
+                net[0], net[-1], int(net[0]), int(net[-1]), \
+                get_region(diff), get_region(diff))
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password) :
         return "Authentication Failed."
-    result = ""
     subnet_list = get_subnet()
-    for subnet in subnet_list:
-        net = ipaddr.IPv4Network(subnet)
-        data = get_subnet_latency(subnet)
-        if data == None:
-            continue
-        ping_hn, ping_hcm, diff = pickle.loads(data)
-        if int(diff) == 0:
-            continue
-        result += '"%s","%s","%s","%s","%s","%s"\n' % ( \
-            net[0], net[-1], int(net[0]), int(net[-1]), \
-            get_region(diff), get_region(diff))
-    return result
+    return Response(gen_csv_line(subnet_list), mimetype='text/csv')
 
 @app.route('/ip/')
 def api_ip_usage():
