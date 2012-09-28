@@ -184,7 +184,7 @@ def is_subnet_valid(subnet):
     return True
 
 def is_subnet_list_changed():
-    return redis_server.get(REDIS_SUBNET_CHANGED_KEY)==1
+    return redis_server.get(REDIS_SUBNET_CHANGED_KEY)=="1"
 
 def set_subnet_list_changed():
     redis_server.set(REDIS_SUBNET_CHANGED_KEY, 1)
