@@ -31,6 +31,7 @@ def apt_get_csv():
     if not auth or not check_auth(auth.username, auth.password) :
         return "Authentication Failed."
     result = ""
+    subnet_list = get_subnet()
     for subnet in subnet_list:
         net = ipaddr.IPv4Network(subnet)
         data = get_subnet_latency(subnet)
