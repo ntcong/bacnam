@@ -10,6 +10,16 @@ def check_auth(username, password):
     return username == 'admin' and password == '123456'
 
 
+def get_region(num):
+    num = int(num)
+    if diff > MIN_DIFFERENT:
+        return "US"  # HCM
+    elif diff < -MIN_DIFFERENT:
+        return "VN"   # HN
+    else:
+        return "US"  # return HCM for all unknown result
+
+
 @app.route('/')
 def api_root():
     return 'Welcome'
@@ -21,9 +31,17 @@ def apt_get_csv():
     if not auth or not check_auth(auth.username, auth.password) :
         return "Authentication Failed."
     result = ""
-    with open("IPBN2.csv",'r') as inf:
-        for line in inf:
-            result += line
+    for subnet in subnet_list:
+        net = ipaddr.IPv4Network(subnet)
+        data = get_subnet_latency(subnet)
+        if data == None:
+            continue
+        ping_hn, ping_hcm, diff = pickle.loads(data)
+        if int(diff) == 0:
+            continue
+        result += '"%s","%s","%s","%s","%s","%s"\n' % ( \
+            net[0], net[-1], int(net[0]), int(net[-1]), \
+            get_region(diff), get_region(diff))
     return result
 
 @app.route('/ip/')
